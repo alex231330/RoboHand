@@ -1,0 +1,10 @@
+C:\Users\Oleg\Desktop\leap\leap_form\bin\Release\leap_form.exe.config
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.csprojResolveAssemblyReference.cache
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.Form1.resources
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.Form2.resources
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.Properties.Resources.resources
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.csproj.GenerateResource.Cache
+C:\Users\Oleg\Desktop\leap\leap_form\bin\Release\leap_form.exe
+C:\Users\Oleg\Desktop\leap\leap_form\bin\Release\leap_form.pdb
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.exe
+C:\Users\Oleg\Desktop\leap\leap_form\obj\Release\leap_form.pdb

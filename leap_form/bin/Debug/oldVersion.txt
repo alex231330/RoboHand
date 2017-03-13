@@ -1,0 +1,299 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using Leap;
+using MonoBrick.NXT;
+using System.Threading;
+
+namespace leap_form
+{
+    public partial class Form1 : Form
+    {
+        LeapMotion leap;
+        Graphics g;
+        Finger fingers;
+        int k = 8;
+        Bone bone;
+        bool mode = false;
+        int im = 1;
+        int f1, f2, f3, f4, f5, f6;
+        Controller controller;
+        OurGraphics graphics;
+        Thread sender_thread;
+        static Brick<Sensor, Sensor, Sensor, Sensor> nxt;
+        static byte[] mes;
+        static byte[] mes2;
+        int[] wtf = new int[6];
+        int x, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19;
+        writerToFile w = new writerToFile();
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (button2.Text == "start write")
+            {
+                button2.Text = "writing...";
+                mode = true;
+            }
+            else {
+                button2.Text = "start write"; mode = false; } 
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            drwHand();            
+        }       
+
+        int y, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15, y16, y17, y18, y19;
+        int xl, xl1, xl2, xl3, xl4, xl5, xl6, xl7, xl8, xl9, xl10, xl11, xl12, xl13, xl14, xl15, xl16, xl17, xl18, xl19;
+        int yl, yl1, yl2, yl3, yl4, yl5, yl6, yl7, yl8, yl9, yl10, yl11, yl12, yl13, yl14, yl15, yl16, yl17, yl18, yl19;
+        int centerXpalm, outputState;
+        float[] cordsX = new float[5];
+        float[] cordsY = new float[5];
+
+        public Form1()
+        {
+            InitializeComponent();
+            leap = new LeapMotion();
+            controller = new Controller();
+            graphics = new OurGraphics();
+            sender_thread = new Thread(send_massage_func);
+        }
+
+        private void Button_Click_1(object sender, EventArgs e)
+        {
+                nxt = new Brick<Sensor, Sensor, Sensor, Sensor>("COM20");
+                nxt.Connection.Open();
+                mes = new byte[]{ 0, 0, 0, 0 };
+                mes2 = new byte[] { 0, 0};
+        }
+
+        static void send_massage_func()
+        {
+           nxt.Mailbox.Send(mes, Box.Box1);
+           nxt.Mailbox.Send(mes2, Box.Box2);
+        }
+
+        void drawRect(int x, int y)
+        {
+            g = pictureBox1.CreateGraphics();
+            Brush brush = new SolidBrush(System.Drawing.Color.White);
+            Rectangle rect = new Rectangle(x, y, 20, 20);
+            g.FillRectangle(brush, rect);
+        }
+
+        void drawWRound(int x, int y)
+        {
+            g = pictureBox1.CreateGraphics();
+            Brush brush = new SolidBrush(System.Drawing.Color.White);
+            Rectangle rect = new Rectangle(x, y, 20, 20);
+            g.FillEllipse(brush, rect);
+        }
+
+        void drawRound(Graphics g,Pen pen, int size, int xr, int yr, int W, int H)
+        {
+            int x1R = 0, y1R = 0;
+            for (y1R = -size; y1R < size; y1R++)
+                for (x1R = -size; x1R < size; x1R++)
+                    if ((x1R * x1R + y1R * y1R) <= size * size && x1R + xr < W && y1R + yr < H && x1R + xr > 0 && y1R + yr > 0)
+                    {
+                        g.DrawLine(pen, x1R+xr, y1R+yr, x1R+xr+1, y1R+yr+1);
+                    }
+        }
+
+        void drawLine(int x, int y, int x1, int y1)
+        {
+            g = pictureBox1.CreateGraphics();
+            Pen pen = new Pen(System.Drawing.Color.Red);
+        }
+
+        public void drawLine(Pen pen,Point[] points, int Width, int xLine1, int yLine1, int xLine2, int yLine2, int W, int H)
+        {
+            int x1, y1;
+            Graphics g = pictureBox1.CreateGraphics();
+            if (yLine1 > yLine2)
+            {
+                int tmp = yLine1;
+                yLine1 = yLine2;
+                yLine2 = tmp;
+                tmp = xLine1;
+                xLine1 = xLine2;
+                xLine2 = tmp;
+            }
+            for (y1 = yLine1; y1 < yLine2; y1++)
+            {
+                x1 = (((y1 - yLine1) * (xLine2 - xLine1)) / (yLine2 - yLine1)) + xLine1;
+                for (int i = 0; i < Width; i++)
+                    for (int kk = 0; kk < Width; kk++)
+                    {
+                        if ((y1 + i) * W + x1 + kk < H * W - 4 && (y1 + i) * W + x1 + kk > 0)
+                        {
+                            g.DrawLine(pen, x1, y1, x1, y1);
+                        }
+                    }
+            }
+        }
+
+        void drawWLine(int x, int y, int x1, int y1)
+        {
+            g = pictureBox1.CreateGraphics();
+            Pen pen = new Pen(System.Drawing.Color.White);
+            g.DrawLine(pen, x, y, x1, y1);
+        }
+
+         void drwHand()      {
+            leap.OnFrame(controller);
+            while (true)
+            {
+                send_massage_func();
+                leap.OnFrame(controller);
+                Graphics g = pictureBox1.CreateGraphics();
+                centerXpalm = leap.t[1];
+                /*                Pen pen = new Pen(System.Drawing.Color.Red);
+                                Graphics g = pictureBox1.CreateGraphics();
+                                 drawRound(g,pen, 5,(int)leap.cordX, (int)leap.cordY, 640,480);
+                                SolidBrush b = new SolidBrush(System.Drawing.Color.White);
+                                Pen penw = new Pen(System.Drawing.Color.Black);
+                                Graphics gw = pictureBox1.CreateGraphics();
+                                g.FillRectangle(b, 0, 0, 640, 480);
+                                drawRound(gw, penw, 10, (int)leap.cordX3, (int)leap.cordY3, 640, 480);
+                                drawRound(gw, penw, 10, (int)leap.cordX4, (int)leap.cordY4, 640, 480);
+
+                                drawRound(gw, penw, 10, (int)leap.cordX7, (int)leap.cordY7, 640, 480);
+                                drawRound(gw, penw, 10, (int)leap.cordX8, (int)leap.cordY8, 640, 480);
+
+                                drawRound(gw, penw, 10, (int)leap.cordX11, (int)leap.cordY11, 640, 480);
+                                drawRound(gw, penw, 10, (int)leap.cordX12, (int)leap.cordY12, 640, 480);
+
+                                drawRound(gw, penw, 10, (int)leap.cordX15, (int)leap.cordY15, 640, 480);
+                                drawRound(gw, penw, 10, (int)leap.cordX16, (int)leap.cordY16, 640, 480);
+
+                                drawRound(gw, penw, 10, (int)leap.cordX1, (int)leap.cordY1, 640, 480);
+                                drawRound(gw, penw, 10, (int)leap.cordX2, (int)leap.cordY2, 640, 480);
+
+                                Pen penb = new Pen(System.Drawing.Color.Green);
+                                LeapMotion l = new LeapMotion();
+                                drawRound(g, penb, 10, l.t[0] + 300, l.t[1] + 300, 640, 480);
+
+                                drawRound(g, pen, 5, 50,(int)(k * (Math.Sqrt((double)((leap.cordX3 - leap.cordX2) * (leap.cordX3 - leap.cordX2) + (leap.cordY3 - leap.cordY2) * (leap.cordY3 - leap.cordY2))) - 80)), 640, 480);
+                                drawRound(g, pen, 5, 10,(int)(k * (Math.Sqrt((double)((leap.cordX3 - leap.cordX4) * (leap.cordX3 - leap.cordX4) + (leap.cordY3 - leap.cordY4) * (leap.cordY3 - leap.cordY4))) - 80)), 640, 480);
+                                drawRound(g, pen, 5, 140,(int)(k * (Math.Sqrt((double)((leap.cordX7 - leap.cordX8) * (leap.cordX7 - leap.cordX8) + (leap.cordY7 - leap.cordY8) * (leap.cordY7 - leap.cordY8))) - 80)), 640, 480);
+                                drawRound(g, pen, 5, 90, (int)(k * (Math.Sqrt((double)((leap.cordX11 - leap.cordX12) * (leap.cordX11 - leap.cordX12) + (leap.cordY11 - leap.cordY12) * (leap.cordY11 - leap.cordY12))) - 80)), 640, 480);
+                                drawRound(g, pen, 5, 90, (int)(k * (Math.Sqrt((double)((leap.cordX15 - leap.cordX16) * (leap.cordX15 - leap.cordX16) + (leap.cordY15 - leap.cordY16) * (leap.cordY15 - leap.cordY16))) - 80)), 640, 480);
+
+                                drawLine((int)(leap.cordX), (int)(leap.cordY), (int)(leap.cordX1), (int)(leap.cordY1));
+                                drawLine((int)(leap.cordX2), (int)(leap.cordY2), (int)(leap.cordX3), (int)(leap.cordY3));
+                                drawLine((int)(leap.cordX4), (int)(leap.cordY4), (int)(leap.cordX5), (int)(leap.cordY5));
+                                drawLine((int)(leap.cordX6), (int)(leap.cordY6), (int)(leap.cordX7), (int)(leap.cordY7));
+                                drawLine((int)(leap.cordX8), (int)(leap.cordY8), (int)(leap.cordX9), (int)(leap.cordY9));
+                                drawLine((int)(leap.cordX10), (int)(leap.cordY10), (int)(leap.cordX11), (int)(leap.cordY11));
+                                drawLine((int)(leap.cordX12), (int)(leap.cordY12), (int)(leap.cordX13), (int)(leap.cordY13));
+                                drawLine((int)(leap.cordX14), (int)(leap.cordY14), (int)(leap.cordX15), (int)(leap.cordY15));
+                                drawLine((int)(leap.cordX16), (int)(leap.cordY16), (int)(leap.cordX17), (int)(leap.cordY17));
+                                drawLine((int)(leap.cordX18), (int)(leap.cordY18), (int)(leap.cordX19), (int)(leap.cordY19));
+
+                                x = (int)leap.cordX;
+                                x1 = (int)leap.cordX1;
+                                x2 = (int)leap.cordX2;
+                                x3 = (int)leap.cordX3;
+                                x4 = (int)leap.cordX4;
+                                x5 = (int)leap.cordX5;
+                                x6 = (int)leap.cordX6;
+                                x7 = (int)leap.cordX7;
+                                x8 = (int)leap.cordX8;
+                                x9 = (int)leap.cordX9;
+                                x10 = (int)leap.cordX10;
+                                x11 = (int)leap.cordX11;
+                                x12 = (int)leap.cordX12;
+                                x13 = (int)leap.cordX13;
+                                x14 = (int)leap.cordX14;
+                                x15 = (int)leap.cordX15;
+                                x16 = (int)leap.cordX16;
+                                x17 = (int)leap.cordX17;
+                                x18 = (int)leap.cordX18;
+                                x19 = (int)leap.cordX19;
+                                y = (int)leap.cordY;
+                                y1 = (int)leap.cordY1;
+                                y2 = (int)leap.cordY2;
+                                y3 = (int)leap.cordY3;
+                                y4 = (int)leap.cordY4;
+                                y5 = (int)leap.cordY5;
+                                y6 = (int)leap.cordY6;
+                                y7 = (int)leap.cordY7;
+                                y8 = (int)leap.cordY8;
+                                y9 = (int)leap.cordY9;
+                                y10 = (int)leap.cordY10;
+                                y11 = (int)leap.cordY11;
+                                y12 = (int)leap.cordY12;
+                                y13 = (int)leap.cordY13;
+                                y14 = (int)leap.cordY14;
+                                y15 = (int)leap.cordY15;
+                                y16 = (int)leap.cordY16;
+                                y17 = (int)leap.cordY17;
+                                y18 = (int)leap.cordY18;
+                                y19 = (int)leap.cordY19;
+
+                                drawWLine(xl, yl, xl1, yl1);
+                                drawWLine(xl2, yl2, xl3, yl3);
+                                drawWLine(xl4, yl4, xl5, yl5);
+                                drawWLine(xl6, yl6, xl7, yl7);
+                                drawWLine(xl8, yl8, xl9, yl9);
+                                drawWLine(xl10, yl10, xl11, yl11);
+                                drawWLine(xl12, yl12, xl13, yl13);
+                                drawWLine(xl14, yl14, xl15, yl15);
+                                drawWLine(xl16, yl16, xl17, yl17);
+                                drawWLine(xl18, yl18, xl19, yl19);
+                                */
+                f2 = 190 - (int)(k * (Math.Sqrt((double)((leap.cordX3 - leap.cordX2) * (leap.cordX3 - leap.cordX2) + (leap.cordY3 - leap.cordY2) * (leap.cordY3 - leap.cordY2))) - 100));
+                f1 = (int)(k * (Math.Sqrt((double)((leap.cordX3 - leap.cordX4) * (leap.cordX3 - leap.cordX4) + (leap.cordY3 - leap.cordY4) * (leap.cordY3 - leap.cordY4))) - 100));
+                f4 = (int)(k * (Math.Sqrt((double)((leap.cordX7 - leap.cordX8) * (leap.cordX7 - leap.cordX8) + (leap.cordY7 - leap.cordY8) * (leap.cordY7 - leap.cordY8))) - 100));
+                f3 = (int)(k * (Math.Sqrt((double)((leap.cordX11 - leap.cordX12) * (leap.cordX11 - leap.cordX12) + (leap.cordY11 - leap.cordY12) * (leap.cordY11 - leap.cordY12))) - 100));
+                f5 = k * (Math.Abs((int)(leap.cordX17 - leap.t[0])) - 250);
+                outputState = ((leap.t[2] - 50)/ 2);
+                Pen pen = new Pen(System.Drawing.Color.Blue);
+                drawRound(g, pen, 10, f5, 300, 640, 480);
+                if (f1 <= 0)
+                  mes[0] = 190;
+                else if (f1 > 190)
+                  mes[0] = 0;
+                else
+                mes[0] = (byte)(190 - f1);
+                if (f2 <= 0)
+                    mes[1] = 0;
+                else if (f2 > 190)
+                    mes[1] = 190;
+                else
+                    mes[1] = (byte)(190 - f2);
+                if (f3 <= 0)
+                    mes[2] = 0;
+                else if (f3 > 190)
+                    mes[2] = 190;
+                else
+                    mes[2] = (byte)(f3);
+                if (f4 <= 0)
+                    mes[3] = 190;
+                else if (f4 > 190)
+                    mes[3] = 0;
+                else
+                    mes[3] = (byte)(190 - f4);
+                if (f5 < 0)
+                   mes2[0] = 0;
+                else if (f5 > 240)
+                    mes2[0] = 240;
+                else
+                    mes2[0] = (byte)f5;
+                mes2[1] = (byte)outputState;
+
+                wtf[0] = mes[0];
+                wtf[1] = mes[1];
+                wtf[2] = mes[2];
+                wtf[3] = mes[3];
+                wtf[4] = mes2[0];
+                wtf[5] = mes[1];
+                if (mode)
+                {
+                    w.writeInFile(wtf, 6);   
+                }
+            }
+        }
+    }
+}
